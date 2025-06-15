@@ -1,7 +1,14 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import type { User } from "next-auth";
 
-// This is a simplified authentication setup for demo purposes
+// Define custom User interface with 'role'
+interface UserWithRole extends User {
+  role: string;
+  id: string;
+}
+
+// Demo users
 const demoUsers = [
   {
     id: "1",
@@ -46,14 +53,12 @@ const handler = NextAuth({
           return null;
         }
 
-        // Find user by email
         const user = demoUsers.find(
           (user) => user.email === credentials.email
         );
 
-        // Check if user exists and password matches
         if (user && user.password === credentials.password) {
-          // Remove password from returned user object
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { password: _, ...userWithoutPassword } = user;
           return userWithoutPassword;
         }
@@ -72,8 +77,9 @@ const handler = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role = user.role;
+        const u = user as UserWithRole;
+        token.id = u.id;
+        token.role = u.role;
       }
       return token;
     },
